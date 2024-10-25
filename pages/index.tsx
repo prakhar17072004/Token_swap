@@ -4,9 +4,9 @@ import Web3 from 'web3';
 import TokenSwap from '../components/TokenSwap';
 import MyToken from '../components/MyToken1'; // Adjust if needed
 import MyToken2 from '../components/MyToken2'; // Adjust if needed
-//import MyTokenArtifact from '../artifacts/MyToken.json'; // Adjust path based on your structure
-//import MyToken2Artifact from '../artifacts/MyToken2.json'; // Adjust path based on your structure
-//import TokenSwapArtifact from '../artifacts/TokenSwap.json'; // Adjust path based on your structure
+import Token1ABI from '../abis/Token1.json'; // Adjust path based on your structure
+import Token2ABI from '../abis/Token2.json'; // Adjust path based on your structure
+import SwapTokenABI from '../abis/SwapToken.json'; // Adjust path based on your structure
 
 // Define types for the contracts
 type Contract = {
@@ -33,18 +33,18 @@ const Home: React.FC = () => {
         const networkId = await web3Instance.eth.net.getId();
 
         // Check if contracts exist on the current network
-        const myTokenAddress = MyTokenArtifact.networks[networkId]?.address;
-        const myToken2Address = MyToken2Artifact.networks[networkId]?.address;
-        const tokenSwapAddress = TokenSwapArtifact.networks[networkId]?.address;
+        const myTokenAddress ="0x487697BA791CD4dEd7A9C6769915c55E71bECEA0";
+        const myToken2Address = "0xe5806B516d9609F34C07a57dE45bEE5E168Af6A9";
+        const tokenSwapAddress ="0xDc30311cD698e8D625444A43b5aCe08aF2C9FAFB";
 
         if (!myTokenAddress || !myToken2Address || !tokenSwapAddress) {
           console.error('Contracts not deployed on the current network');
           return;
         }
 
-        const myTokenContractInstance = new web3Instance.eth.Contract(MyTokenArtifact.abi, myTokenAddress);
-        const myToken2ContractInstance = new web3Instance.eth.Contract(MyToken2Artifact.abi, myToken2Address);
-        const tokenSwapContractInstance = new web3Instance.eth.Contract(TokenSwapArtifact.abi, tokenSwapAddress);
+        const myTokenContractInstance = new web3Instance.eth.Contract(Token1ABI, myTokenAddress);
+        const myToken2ContractInstance = new web3Instance.eth.Contract(Token2ABI, myToken2Address);
+        const tokenSwapContractInstance = new web3Instance.eth.Contract(SwapTokenABI, tokenSwapAddress);
 
         setMyTokenContract(myTokenContractInstance);
         setMyToken2Contract(myToken2ContractInstance);
@@ -59,7 +59,7 @@ const Home: React.FC = () => {
 
   return (
     <div>
-      <h1>Token Swap DApp</h1>
+      <h1>Token Swap dApp</h1>
       {myTokenContract && <MyToken tokenContract={myTokenContract} />}
       {myToken2Contract && <MyToken2 tokenContract={myToken2Contract} />}
       {tokenSwapContract && (
