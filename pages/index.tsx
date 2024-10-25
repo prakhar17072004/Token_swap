@@ -21,6 +21,8 @@ const Home: React.FC = () => {
   const [myToken1Contract, setMyTokenContract] = useState<Contract | null>(null);
   const [myToken2Contract, setMyToken2Contract] = useState<Contract | null>(null);
   const [tokenSwapContract, setTokenSwapContract] = useState<Contract | null>(null);
+  const [account, setAccount] = useState<string | null>(null);
+  const [balance, setBalance] = useState<string>('0');
 
   useEffect(() => {
     const init = async () => {
@@ -30,7 +32,13 @@ const Home: React.FC = () => {
   
         try {
           await window.ethereum.request({ method: 'eth_requestAccounts' });
-  
+          const accounts = await web3Instance.eth.getAccounts();
+          setAccount(accounts[0]); // Set the first account as the current account
+
+          // Fetch balance for the connected account
+          const userBalance = await web3Instance.eth.getBalance(accounts[0]);
+          setBalance(web3Instance.utils.fromWei(userBalance, 'ether'));
+
           const networkId = await web3Instance.eth.net.getId();
           const myToken1Address = "0x487697BA791CD4dEd7A9C6769915c55E71bECEA0";
           const myToken2Address = "0xe5806B516d9609F34C07a57dE45bEE5E168Af6A9";
@@ -59,18 +67,81 @@ const Home: React.FC = () => {
     init();
   }, []);
 
+  const handleConnect = async () => {
+    if (window.ethereum) {
+      const web3Instance = new Web3(window.ethereum as any);
+      const accounts = await web3Instance.eth.requestAccounts();
+      setAccount(accounts[0]);
+
+      // Fetch balance for the connected account
+      const userBalance = await web3Instance.eth.getBalance(accounts[0]);
+      setBalance(web3Instance.utils.fromWei(userBalance, 'ether'));
+    }
+  };
+
+  const handleDisconnect = () => {
+    setAccount(null);
+    setBalance('0');
+    if (web3) {
+      web3.eth.clearSubscriptions(); // Clear subscriptions if any
+    }
+  };
+
+  const formatAddress = (address: string | null) => {
+    if (!address) return '';
+    return `${address.slice(0, 6)}...${address.slice(-4)}`; // Format address
+  };
+
+  const formatBalance = (balance: string) => {
+    const balanceInEther = parseFloat(balance);
+    return balanceInEther.toFixed(3); // Format balance to 3 decimal places
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-5">
       <h1 className="text-4xl font-bold mb-10">Token Swap dApp</h1>
-      <div className="w-full max-w-3xl bg-white rounded-lg shadow-md p-6">
-        {myToken1Contract && <MyToken1 tokenContract={myToken1Contract} />}
-        {myToken2Contract && <MyToken2 tokenContract={myToken2Contract} />}
-        {tokenSwapContract && (
-          <TokenSwap 
-            tokenSwapContract={tokenSwapContract} 
-            token1Contract={myToken1Contract} 
-            token2Contract={myToken2Contract} 
-          />
+      <div className="absolute top-5 right-5 flex items-center">
+      {account ? (
+          <div className="mr-4 text-lg bg-green-300 p-4 rounded ">
+            <span>Balance: {formatBalance(balance)} ETH</span>
+          </div>
+        ) : null}
+        {account ? (
+          <div className="flex items-center  bg-blue-300 p-4 rounded-2xl">
+            <span className="mr-2 text-lg">{formatAddress(account)}</span>
+            <button
+              onClick={handleDisconnect}
+              className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+            >
+              Disconnect
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={handleConnect}
+            className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+          >
+            Connect Wallet
+          </button>
+        )}
+      </div>
+      <div className="w-full max-w-3xl bg-white rounded-lg shadow-md p-6 mt-16">
+        {!account ? (
+          <div className="text-center text-lg text-gray-600">
+            Welcome to the Swapping Page! Please connect your wallet.
+          </div>
+        ) : (
+          <>
+            {myToken1Contract && <MyToken1 tokenContract={myToken1Contract} />}
+            {myToken2Contract && <MyToken2 tokenContract={myToken2Contract} />}
+            {tokenSwapContract && (
+              <TokenSwap 
+                tokenSwapContract={tokenSwapContract} 
+                token1Contract={myToken1Contract} 
+                token2Contract={myToken2Contract} 
+              />
+            )}
+          </>
         )}
       </div>
     </div>
